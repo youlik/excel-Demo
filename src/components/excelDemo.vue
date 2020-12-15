@@ -85,13 +85,19 @@
             addRangeBorder(range,ws){
                 let arr = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
                 range.forEach(item=>{
+                    console.log(item)
                     let startRowNumber = Number(item.s.c),
                         endRowNumber = Number(item.e.c);
                     for(let i = startRowNumber;i<= endRowNumber;i++){
-                        ws[arr[i]+(Number(item.e.r)+1)]= {s:{border:{top:{style:'thin'}, left:{style:'thin'},bottom:{style:'thin'},right:{style:'thin'}}}};
+                        for( let j = Number(item.s.r)+1;j<=Number(item.e.r);j++){
+                            ws[`${arr[i]}${j+1}`] = {s:{border:{top:{style:'thin'}, left:{style:'thin'},bottom:{style:'thin'},right:{style:'thin'}}}};
+                        }
                     }
+
                 })
+                console.log(ws)
                 return ws;
+
             },
         }
     }
