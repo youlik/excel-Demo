@@ -25,27 +25,74 @@
 
 <script>
     import XLSX from 'xlsx'
-    // import XLSXS from 'xlsx-style'
+    import XLSXS from 'xlsx-style'
     import FileSaver from 'file-saver'
     export default {
         name: "excelDemo",
         methods:{
             toExcel(){
                 let wb = XLSX.utils.table_to_book(this.$refs.table,{sheet:'分组表'})
-                console.log(wb)
-                var ws = XLSX.write(wb, {
-                    bookType: "xlsx",
-                    bookSST: true,
-                    type: "array"
+                this.setExlStyle(wb['Sheets']['分组表'])
+                this.addRangeBorder(wb['Sheets']['分组表']['!merges'],wb['Sheets']['分组表'])
+                var ws = XLSXS.write(wb, {
+                    type: "buffer"
                 });
-                console.log(ws)
                 try {
-                    FileSaver.saveAs(new Blob([ws],{type: "application/octet-stream"}),'翻斗花园')
+                    FileSaver.saveAs(
+                        new Blob([ws], { type: "application/octet-stream" }),
+                        `5.xlsx`
+                    );
                 } catch (e) {
-                    if(typeof console !== 'undefined') console.log(e,ws)
+                    if (typeof console !== "undefined") console.log(e, ws);
                 }
-                return ws
-            }
+                return ws;
+            },
+            setExlStyle(data) {
+                let borderAll = {  //单元格外侧框线
+                    top: {
+                        style: 'thin',
+                    },
+                    bottom: {
+                        style: 'thin'
+                    },
+                    left: {
+                        style: 'thin'
+                    },
+                    right: {
+                        style: 'thin'
+                    }
+                };
+                data['!cols'] = [];
+                for (let key in data) {
+                    if (data[key] instanceof Object) {
+                        data[key].s = {
+                            border: borderAll,
+                            alignment: {
+                                horizontal: 'center',   //水平居中对齐
+                                vertical:'center'
+                            },
+                            font:{
+                                sz:11
+                            },
+                            bold:true,
+                            numFmt: 0
+                        }
+                        data['!cols'].push({wpx: 115});
+                    }
+                }
+                return data;
+            },
+            addRangeBorder(range,ws){
+                let arr = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
+                range.forEach(item=>{
+                    let startRowNumber = Number(item.s.c),
+                        endRowNumber = Number(item.e.c);
+                    for(let i = startRowNumber;i<= endRowNumber;i++){
+                        ws[arr[i]+(Number(item.e.r)+1)]= {s:{border:{top:{style:'thin'}, left:{style:'thin'},bottom:{style:'thin'},right:{style:'thin'}}}};
+                    }
+                })
+                return ws;
+            },
         }
     }
 </script>
