@@ -88,11 +88,18 @@
                     console.log(item)
                     let startRowNumber = Number(item.s.c),
                         endRowNumber = Number(item.e.c);
-                    for(let i = startRowNumber;i<= endRowNumber;i++){
-                        for( let j = Number(item.s.r)+1;j<=Number(item.e.r);j++){
-                            ws[`${arr[i]}${j+1}`] = {s:{border:{top:{style:'thin'}, left:{style:'thin'},bottom:{style:'thin'},right:{style:'thin'}}}};
-                        }
+for (let i = startRowNumber + 1; i <= endRowNumber; i++) {
+            ws[arr[i] + (Number(item.e.r) + 1)] = {
+                s: {
+                    border: {
+                        top: {style: 'thin'},
+                        left: {style: 'thin'},
+                        bottom: {style: 'thin'},
+                        right: {style: 'thin'}
                     }
+                }
+            };
+        }
 
                 })
                 console.log(ws)
