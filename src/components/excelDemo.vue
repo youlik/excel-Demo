@@ -1,119 +1,125 @@
 <template>
-    <div>
-        <button class="btn" @click="toExcel">导出</button>
-        <table ref="table" border="1" style="width: 800px">
-            <tr>
-                <th>班级</th>
-                <th>组别</th>
-                <th>姓名</th>
-            </tr>
-            <tr>
-                <td rowspan="3">一班</td>
-                <td rowspan="2">第一组</td>
-                <td>小明</td>
-            </tr>
-            <tr>
-                <td>小吴</td>
-            </tr>
-            <tr>
-                <td>第二组</td>
-                <td>小赵</td>
-            </tr>
-        </table>
-    </div>
+  <div>
+    <button class="btn" @click="toExcel">导出</button>
+    <table ref="table" border="1" style="width: 800px">
+      <tr>
+        <th>班级</th>
+        <th>组别</th>
+        <th>姓名</th>
+      </tr>
+      <tr>
+        <td rowspan="3">一班</td>
+        <td rowspan="2">第一组</td>
+        <td>小明</td>
+      </tr>
+      <tr>
+        <td>小吴</td>
+      </tr>
+      <tr>
+        <td>第二组</td>
+        <td>小赵</td>
+      </tr>
+    </table>
+  </div>
 </template>
 
 <script>
-    import XLSX from 'xlsx'
-    import XLSXS from 'xlsx-style'
-    import FileSaver from 'file-saver'
-    export default {
-        name: "excelDemo",
-        methods:{
-            toExcel(){
-                let wb = XLSX.utils.table_to_book(this.$refs.table,{sheet:'分组表'})
-                this.setExlStyle(wb['Sheets']['分组表'])
-                this.addRangeBorder(wb['Sheets']['分组表']['!merges'],wb['Sheets']['分组表'])
-                var ws = XLSXS.write(wb, {
-                    type: "buffer"
-                });
-                try {
-                    FileSaver.saveAs(
-                        new Blob([ws], { type: "application/octet-stream" }),
-                        `5.xlsx`
-                    );
-                } catch (e) {
-                    if (typeof console !== "undefined") console.log(e, ws);
-                }
-                return ws;
+import XLSX from "xlsx";
+import XLSXS from "xlsx-style";
+import FileSaver from "file-saver";
+export default {
+  name: "excelDemo",
+  methods: {
+    toExcel() {
+      let wb = XLSX.utils.table_to_book(this.$refs.table, { sheet: "分组表" });
+      this.setExlStyle(wb["Sheets"]["分组表"]);
+      this.addRangeBorder(
+        wb["Sheets"]["分组表"]["!merges"],
+        wb["Sheets"]["分组表"]
+      );
+      var ws = XLSXS.write(wb, {
+        type: "buffer",
+      });
+      try {
+        FileSaver.saveAs(
+          new Blob([ws], { type: "application/octet-stream" }),
+          `5.xlsx`
+        );
+      } catch (e) {
+        if (typeof console !== "undefined") console.log(e, ws);
+      }
+      return ws;
+    },
+    setExlStyle(data) {
+      let borderAll = {
+        //单元格外侧框线
+        top: {
+          style: "thin",
+        },
+        bottom: {
+          style: "thin",
+        },
+        left: {
+          style: "thin",
+        },
+        right: {
+          style: "thin",
+        },
+      };
+      data["!cols"] = [];
+      for (let key in data) {
+        if (data[key] instanceof Object) {
+          data[key].s = {
+            border: borderAll,
+            alignment: {
+              horizontal: "center", //水平居中对齐
+              vertical: "center",
             },
-            setExlStyle(data) {
-                let borderAll = {  //单元格外侧框线
-                    top: {
-                        style: 'thin',
-                    },
-                    bottom: {
-                        style: 'thin'
-                    },
-                    left: {
-                        style: 'thin'
-                    },
-                    right: {
-                        style: 'thin'
-                    }
-                };
-                data['!cols'] = [];
-                for (let key in data) {
-                    if (data[key] instanceof Object) {
-                        data[key].s = {
-                            border: borderAll,
-                            alignment: {
-                                horizontal: 'center',   //水平居中对齐
-                                vertical:'center'
-                            },
-                            font:{
-                                sz:11
-                            },
-                            bold:true,
-                            numFmt: 0
-                        }
-                        data['!cols'].push({wpx: 115});
-                    }
-                }
-                return data;
+            font: {
+              sz: 11,
             },
-            addRangeBorder(range,ws){
-                let arr = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-                range.forEach(item=>{
-                    console.log(item)
-                    let startRowNumber = Number(item.s.c),
-                        endRowNumber = Number(item.e.c);
-for (let i = startRowNumber + 1; i <= endRowNumber; i++) {
-            ws[arr[i] + (Number(item.e.r) + 1)] = {
-                s: {
-                    border: {
-                        top: {style: 'thin'},
-                        left: {style: 'thin'},
-                        bottom: {style: 'thin'},
-                        right: {style: 'thin'}
-                    }
-                }
-            };
+            bold: true,
+            numFmt: 0,
+          };
+          data["!cols"].push({ wpx: 115 });
         }
+      }
+      return data;
+    },
+    addRangeBorder(range, ws) {
+        // s:起始位置，e:结束位置
+      let arr =["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
+      range.forEach((item) => {
+        let startRowNumber = Number(item.s.r), startColumnNumber = Number(item.s.c),endColumnNumber = Number(item.e.c),
+          endRowNumber = Number(item.e.r);
+        //   合并单元格时会丢失边框样式，例如A1->A4 此时内容在A1 而range内获取到的是从0开始的，所以开始行数要+2
+        for (let i = startColumnNumber; i <= endColumnNumber; i++) {
+            for(let j = startRowNumber+2 ;j<= endRowNumber+1 ; j++) {
+                        console.log(arr[i] + j)
+                          ws[arr[i] + j] = {
+                            s: {
+                            border: {
+                                top: { style: "thin" },
+                                left: { style: "thin" },
+                                bottom: { style: "thin" },
+                                right: { style: "thin" },
+                            },
+                            },
+                        };
+            }
 
-                })
-                console.log(ws)
-                return ws;
-
-            },
         }
-    }
+      });
+      console.log(ws);
+      return ws;
+    },
+  },
+};
 </script>
 
 <style scoped>
-    .btn{
-        width: 100px;
-        line-height: 50px;
-
-    }
+.btn {
+  width: 100px;
+  line-height: 50px;
+}
 </style>
